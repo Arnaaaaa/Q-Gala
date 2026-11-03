@@ -1,0 +1,12 @@
+{
+  "name": "q-gala-client",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p . && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": { "typescript": "^5.8.0", "vite": "^6.3.0" }
+}

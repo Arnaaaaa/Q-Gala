@@ -1,0 +1,19 @@
+{
+  "_note": "Hall of Pioneers (spec D15). Edit text here; no code change needed. DRAFT: the organizers' reviewer must verify every line before launch. 'story' is the detail-view text (up to 60 words); leave it empty to show only 'known'. 'initials' is optional and overrides the automatic initials. 'findIt' names the game where the idea appears, or null.",
+  "pioneers": [
+    { "name": "Max Planck", "known": "Proposed in 1900 that energy comes in discrete packets, which started quantum theory.", "story": "", "findIt": null },
+    { "name": "Niels Bohr", "known": "Model of the atom with quantized energy levels, and the principle of complementarity.", "story": "", "findIt": null },
+    { "name": "Erwin Schrödinger", "known": "The wave equation of quantum mechanics, and the cat thought experiment.", "story": "", "findIt": null },
+    { "name": "Werner Heisenberg", "known": "The uncertainty principle.", "story": "", "findIt": null },
+    { "name": "Paul Dirac", "known": "Combined quantum mechanics with special relativity, and introduced bra-ket notation.", "story": "", "findIt": null },
+    { "name": "Satyendra Nath Bose", "known": "Kolkata-born physicist whose work on photon statistics led to Bose-Einstein statistics; bosons are named after him.", "story": "", "findIt": null },
+    { "name": "John Bell", "known": "Bell's theorem (1964), which made entanglement testable.", "story": "", "findIt": null },
+    { "name": "Richard Feynman", "known": "Proposed computers that use quantum mechanics to simulate nature.", "story": "", "findIt": null },
+    { "name": "David Deutsch", "known": "Described the universal quantum computer and an early algorithm showing quantum advantage.", "story": "", "findIt": null },
+    { "name": "Peter Shor", "known": "Quantum algorithm for factoring integers, and the first quantum error-correcting code.", "story": "", "findIt": "Ravens and Robins" },
+    { "name": "Lov Grover", "known": "Quantum algorithm for searching unsorted data with a quadratic speedup.", "story": "", "findIt": null },
+    { "name": "Charles Bennett and Gilles Brassard", "known": "BB84, the first quantum key distribution protocol.", "story": "", "findIt": "Ravens and Robins" },
+    { "name": "Chien-Shiung Wu", "known": "Experimental physicist whose 1950 photon-pair experiment with Irving Shaknov is an early entanglement test, and whose 1957 experiment showed that parity is not conserved in weak interactions.", "story": "", "findIt": null },
+    { "name": "Alain Aspect, John Clauser, and Anton Zeilinger", "known": "Experiments with entangled photons that confirmed violations of Bell inequalities; shared the 2022 Nobel Prize in Physics.", "story": "", "findIt": null }
+  ]
+}

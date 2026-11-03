@@ -1,0 +1,26 @@
+// Cloudflare Worker + Durable Object for the Q-Gala game server.
+// Plain settings live in "vars"; secrets are set with `npx wrangler secret put NAME`
+// (never in this file). For local `wrangler dev`, put them in .dev.vars (gitignored).
+{
+  "name": "q-gala",
+  "main": "src/worker.ts",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "durable_objects": {
+    "bindings": [{ "name": "WORLD", "class_name": "World" }]
+  },
+  // SQLite-backed Durable Objects are available on the Workers Free plan.
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["World"] }],
+  // Uncomment and set your domain once its DNS is on Cloudflare:
+  // "routes": [{ "pattern": "game.example.org", "custom_domain": true }],
+  "vars": {
+    "PUBLIC_URL": "https://q-gala.YOUR-SUBDOMAIN.workers.dev",
+    "CLIENT_URL": "https://YOUR-ORG.github.io/q-gala",
+    "DISCORD_INVITE_URL": "https://discord.gg/your-invite",
+    "DISCORD_REQUIRED_ROLE_ID": "",
+    "ADMIN_IDS": "",
+    "TEST_ACCOUNT_IDS": "",
+    "RESERVED_NAMES": ""
+  },
+  "observability": { "enabled": true }
+}
