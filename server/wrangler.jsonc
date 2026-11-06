@@ -14,9 +14,11 @@
   // Uncomment and set your domain once its DNS is on Cloudflare:
   // "routes": [{ "pattern": "game.example.org", "custom_domain": true }],
   "vars": {
-    "PUBLIC_URL": "https://q-gala.YOUR-SUBDOMAIN.workers.dev",
+    "PUBLIC_URL": "https://q-gala.arnaroy2007.workers.dev/",
     "CLIENT_URL": "https://arnaaaaa.github.io/Q-Gala/",
     "DISCORD_INVITE_URL": "https://discord.gg/qGRQ4mQhq",
+    "DISCORD_CLIENT_ID": "1565795527516225698",
+    "DISCORD_GUILD_ID": "1548600663624261733",
     "DISCORD_REQUIRED_ROLE_ID": "",
     "ADMIN_IDS": "",
     "TEST_ACCOUNT_IDS": "",
