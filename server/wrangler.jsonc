@@ -15,8 +15,8 @@
   // "routes": [{ "pattern": "game.example.org", "custom_domain": true }],
   "vars": {
     "PUBLIC_URL": "https://q-gala.YOUR-SUBDOMAIN.workers.dev",
-    "CLIENT_URL": "https://YOUR-ORG.github.io/q-gala",
-    "DISCORD_INVITE_URL": "https://discord.gg/your-invite",
+    "CLIENT_URL": "https://arnaaaaa.github.io/Q-Gala/",
+    "DISCORD_INVITE_URL": "https://discord.gg/qGRQ4mQhq",
     "DISCORD_REQUIRED_ROLE_ID": "",
     "ADMIN_IDS": "",
     "TEST_ACCOUNT_IDS": "",
