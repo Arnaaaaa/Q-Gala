@@ -37,7 +37,9 @@ export const TUNABLES = {
     botAbortMarginPct: 10,
     botRavenAggression: 16, // bot Raven intercepts 0..this many notes
     // Spec default ravenPerLearnedBit is 2; calibration (README) raised it to 4 so Ravens can win; approved 30 Oct 2026.
-    points: { robinPerSafeBit: 1, ravenPerLearnedBit: 4, spyFoiled: 10, bluff: 5 },
+    // 8 Nov 2026: all values ×5 (ratios unchanged, so the calibration still holds) so a match
+    // is worth about as much as a Gate Dash run on the leaderboard.
+    points: { robinPerSafeBit: 5, ravenPerLearnedBit: 20, spyFoiled: 50, bluff: 25 },
   },
   leaderboardRefreshMs: 30_000,
   hub: {

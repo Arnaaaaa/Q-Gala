@@ -1,37 +1,37 @@
 {
-  "_note": "Learning cards (spec D9). Edit text here; no code change needed. DRAFT: needs mentor review before launch.",
-  "avatar": {
-    "title": "What your colours mean",
-    "text": "Your bird's colours show the odds of what you would see if you measured it. At 70/30, measuring gives indigo about 7 times in 10 and violet about 3 times in 10. It is not a half-way color: a measurement always gives one definite answer."
+ "_note": "Learning cards (spec D9). Edit text here; no code change needed. DRAFT: needs mentor review before launch.",
+ "avatar": {
+  "title": "What your colours mean",
+  "text": "Your bird's colours show the odds of what you would see if you measured it. At 70/30, measuring gives indigo about 7 times in 10 and violet about 3 times in 10. It is not a half-way color: a measurement always gives one definite answer."
+ },
+ "gateDash": {
+  "title": "Gates are circuits",
+  "text": "Gates change a qubit's state. X swaps 0 and 1. H turns a definite 0 or 1 into an equal superposition, and back again. Z leaves 0 and 1 alone but swaps |+⟩ and |−⟩ by flipping the phase. A list of gates is a quantum circuit, the same kind you build in Qiskit."
+ },
+ "ravensIntro": [
+  {
+   "title": "1. Three birds, one secret",
+   "text": "Two Robins want to share a secret key. The Sender sends 32 notes, each holding a 0 or a 1. The Raven tries to steal the key. Each round you get a different role, so you play all three."
   },
-  "gateDash": {
-    "title": "Gates are circuits",
-    "text": "Gates change a qubit's state. X swaps 0 and 1. H turns a definite 0 or 1 into an equal superposition, and back again. Z leaves 0 and 1 alone but swaps |+⟩ and |−⟩ by flipping the phase. A list of gates is a quantum circuit, the same kind you build in Qiskit."
+  {
+   "title": "2. Matching winds",
+   "text": "Every note rides wind A or wind B. The Receiver guesses a wind for each note. Only notes where both Robins chose the same wind are kept. The rest are dropped. You don't need to get them all."
   },
-  "ravensIntro": [
-    {
-      "title": "1. Notes ride the wind",
-      "text": "The Sender Robin sends 32 notes. Each holds a secret bit, 0 or 1, and rides wind A or wind B. The Receiver Robin picks a wind for each note. When the winds match, the Receiver reads the right bit. When they don't, the reading is random, so that note is thrown away."
-    },
-    {
-      "title": "2. Peeking scrambles a note",
-      "text": "The Raven can intercept up to 16 notes and must guess each one's wind. With the right wind she reads the bit and the note flies on unharmed. With the wrong wind the note gets scrambled: the Receiver then reads a random bit. That is how a spy leaves a trace."
-    },
-    {
-      "title": "3. Storms flip notes too",
-      "text": "Each round has a storm that flips a few received bits at random. The Robins see a storm forecast, a range that contains the real storm strength. So an error might be weather, not a Raven."
-    },
-    {
-      "title": "4. Check a sample",
-      "text": "Both Robins' winds become public, and the notes with matching winds are kept. The Sender sacrifices 4 to 10 kept notes as a check: their bits are revealed to everyone. More checks catch more Ravens but leave a shorter secret key."
-    },
-    {
-      "title": "5. Trust or Abort?",
-      "text": "The Receiver decides. Trust: each Robin scores a point per key note the Raven didn't learn, and the Raven scores for the ones she did. Abort when a Raven was there: the Robins score 10 each. Abort when there was no Raven: a false alarm, and the Raven scores for her bluff. Roles rotate, so you play every part."
-    }
-  ],
-  "ravens": {
-    "title": "Weather or Raven?",
-    "text": "Reading a quantum note with the wrong setting scrambles it. On average, a spy's peek causes an error in about one in four of the peeked notes the Robins keep, so spies leave a trace. Storms cause errors too, so the Robins must judge: weather or Raven? This is the idea behind the BB84 protocol of Bennett and Brassard. Error-correcting codes by Shor, Steane, and Gottesman fight the noise."
+  {
+   "title": "3. Peeking leaves a trace",
+   "text": "The Raven can peek at up to 16 notes by guessing their wind. A right guess reads the bit unnoticed. A wrong guess scrambles the note, and scrambled notes show up as errors. Storms cause a few errors too."
+  },
+  {
+   "title": "4. Check, then decide",
+   "text": "The Sender reveals a few kept notes to check for errors. Few errors, about what the storm forecast says: probably just weather. Many more: probably a Raven. The Receiver then picks Trust or Abort."
+  },
+  {
+   "title": "5. Points",
+   "text": "Trust: each Robin gets 5 per key bit the Raven didn't steal, and the Raven gets 20 per bit she stole. Abort with a Raven present: each Robin gets 50. Abort with no Raven: a false alarm, and the Raven gets 25 for the bluff."
   }
+ ],
+ "ravens": {
+  "title": "Weather or Raven?",
+  "text": "Reading a quantum note with the wrong setting scrambles it. On average, a spy's peek causes an error in about one in four of the peeked notes the Robins keep, so spies leave a trace. Storms cause errors too, so the Robins must judge: weather or Raven? This is the idea behind the BB84 protocol of Bennett and Brassard. Error-correcting codes by Shor, Steane, and Gottesman fight the noise."
+ }
 }

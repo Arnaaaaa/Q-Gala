@@ -42,6 +42,10 @@ CREATE TABLE IF NOT EXISTS phrase_log (
   discord_id TEXT NOT NULL,
   phrase_id  INTEGER NOT NULL,
   at         INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS migrations (
+  name TEXT PRIMARY KEY,
+  at   INTEGER NOT NULL
 );`;
 
 // Columns added after the first release; added in place on older database files.
@@ -65,6 +69,15 @@ export class Db {
     for (const stmt of SCHEMA.split(';')) if (stmt.trim()) this.sql.exec(stmt);
     const have = new Set(this.sql.all<{ name: string }>('PRAGMA table_info(users)').map((c) => c.name));
     for (const [col, def] of ADDED_COLUMNS) if (!have.has(col)) this.sql.exec(`ALTER TABLE users ADD COLUMN ${col} ${def}`);
+    // Ravens and Robins points were multiplied by 5 on 8 Nov 2026; bring earlier bests onto the same scale.
+    this.once('rr_points_x5', () => this.sql.run('UPDATE users SET rr_best = rr_best * 5'));
+  }
+
+  /** Runs a data migration exactly once per database. */
+  private once(name: string, migrate: () => void): void {
+    if (this.sql.get('SELECT 1 FROM migrations WHERE name = ?', name)) return;
+    migrate();
+    this.sql.run('INSERT INTO migrations (name, at) VALUES (?, ?)', name, Date.now());
   }
 
   /** Saves a Gate Dash score if it beats the stored best. Returns the best after saving. */

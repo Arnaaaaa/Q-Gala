@@ -8,6 +8,12 @@ import { store } from './prefs.ts';
 const R = TUNABLES.rr;
 const INTRO_KEY = 'qg.rrIntroDone';
 const ROLE_NAME: Record<RrRole, string> = { sender: 'Sender Robin', receiver: 'Receiver Robin', raven: 'Raven' };
+/** One plain sentence per role, shown all round, because players found the game hard to follow. */
+const ROLE_GOAL: Record<RrRole, string> = {
+  sender: 'You are the Sender Robin. Goal: get a secret key to the Receiver without the Raven stealing it.',
+  receiver: 'You are the Receiver Robin. Goal: collect the key, then decide: trust it, or abort if a Raven was peeking.',
+  raven: 'You are the Raven. Goal: peek at notes to steal key bits, without the Robins noticing.',
+};
 const PHASE_NAME: Record<RrPhase, string> = { launch: 'Launch', choose: 'Choose winds', compare: 'Compare notes', verdict: 'Verdict', result: 'Result' };
 
 type Result = Extract<ServerMsg, { t: 'rrResult' }>;
@@ -189,7 +195,7 @@ export class RavensView {
   // ---------- rendering ----------
 
   private render(): void {
-    this.root.replaceChildren(this.header(), this.scoreStrip(), ...this.body());
+    this.root.replaceChildren(this.header(), h('p', { class: `rr-goal role-${this.role}` }, ROLE_GOAL[this.role]), this.scoreStrip(), ...this.body());
     this.tickClock();
   }
 

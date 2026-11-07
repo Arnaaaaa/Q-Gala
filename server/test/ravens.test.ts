@@ -40,15 +40,17 @@ test('the Raven reads true bits only with the right wind', () => {
   assert.equal(f.kept.length, R.notes);
 });
 
+const P = R.points;
+
 test('scoring follows the spec', () => {
   const l: Launch = { bits: [0, 1, 0, 1], senderWinds: ['A', 'A', 'B', 'B'] };
   const kept = [0, 1, 2, 3];
   const raven = new Map<number, Wind>([[1, 'A'], [2, 'A']]); // right wind on note 1, wrong on 2
-  assert.deepEqual(score('trust', kept, [3], raven, l), { outcome: 'trusted', robin: 2, raven: 4, key: [0, 1, 2], learned: [1] });
-  assert.equal(score('abort', kept, [3], raven, l).robin, 10);
+  assert.deepEqual(score('trust', kept, [3], raven, l), { outcome: 'trusted', robin: 2 * P.robinPerSafeBit, raven: P.ravenPerLearnedBit, key: [0, 1, 2], learned: [1] });
+  assert.equal(score('abort', kept, [3], raven, l).robin, P.spyFoiled);
   assert.equal(score('abort', kept, [3], raven, l).raven, 0);
   const none = score('abort', kept, [3], new Map(), l);
-  assert.deepEqual([none.outcome, none.robin, none.raven], ['falseAlarm', 0, 5]);
+  assert.deepEqual([none.outcome, none.robin, none.raven], ['falseAlarm', 0, P.bluff]);
   assert.deepEqual(forecastFor(0), [0, 3]);
   assert.deepEqual(forecastFor(0.06), [3, 9]);
   assert.equal(botTrusts(1, 6, [0, 3]), false); // 17% > 13%
@@ -108,8 +110,8 @@ test('hidden values only reach the role allowed to see them, every round', (t) =
     advance(t, R.resultMs + 1);
   }
   assert.ok(h.isEnded());
-  // Every round was a foiled spy: each player was a Robin twice (10 each) and the Raven once (0).
-  assert.deepEqual([...h.saved.values()], [20, 20, 20]);
+  // Every round was a foiled spy: each player was a Robin twice (spyFoiled each) and the Raven once (0).
+  assert.deepEqual([...h.saved.values()], Array(3).fill(2 * P.spyFoiled));
 });
 
 test('one human with two practice bots completes a full match on timeouts', (t) => {
