@@ -25,10 +25,9 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      # Set the repository variable API_URL to the game server's https address.
       - run: npm run build
         env:
-          VITE_API_URL: ${{ vars.API_URL }}
+          VITE_API_URL: https://q-gala.arnaroy2007.workers.dev
       - uses: actions/upload-pages-artifact@v3
         with:
           path: client/dist
