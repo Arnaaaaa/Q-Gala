@@ -24,7 +24,7 @@ export const config = {
     clientId: env('DISCORD_CLIENT_ID'),
     clientSecret: env('DISCORD_CLIENT_SECRET'),
     guildId: env('DISCORD_GUILD_ID'),
-    requiredRoleId: env('DISCORD_REQUIRED_ROLE_ID'),
+    requiredRoleIds: list('DISCORD_REQUIRED_ROLE_ID'),
     inviteUrl: env('DISCORD_INVITE_URL', 'https://discord.com'),
   },
   adminIds: list('ADMIN_IDS'),

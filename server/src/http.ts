@@ -50,7 +50,8 @@ export function createHttpHandler(db: Db, game: Game) {
       if (!access) return redirectToClient('error=expired');
       const member = await fetchMembership(access).finally(() => revokeToken(access));
       if (!member) return redirectToClient('error=not_member');
-      if (config.discord.requiredRoleId && !member.roles.includes(config.discord.requiredRoleId)) {
+      const need = config.discord.requiredRoleIds;
+      if (need.length > 0 && !need.some((r) => member.roles.includes(r))) {
         return redirectToClient('error=missing_role');
       }
       return finishLogin(member.userId, member.displayName);
