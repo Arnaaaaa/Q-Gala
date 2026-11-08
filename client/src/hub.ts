@@ -176,7 +176,7 @@ export class HubView {
   private showAnnouncement(text: string | null): void {
     this.banner.hidden = !text;
     this.banner.replaceChildren(
-      h('span', { class: 'announce-icon', 'aria-hidden': 'true' }, '📣'),
+      h('span', { class: 'announce-icon', 'aria-hidden': 'true' }, ' '),
       h('span', {}, text ?? ''),
       h('button', { class: 'btn icon small', 'aria-label': 'Hide announcement', onclick: () => (this.banner.hidden = true) }, '✕'),
     );
