@@ -162,7 +162,7 @@ async function showAvatarCard(): Promise<void> {
 
 // Must stay synchronous: the hubState message that triggers it is handed to the hub right after.
 function enterHub(): void {
-  hub = new HubView(net!, { inviteUrl: () => publicCfg?.inviteUrl ?? null, onMyBird: editBird, onSignOut: signOut });
+  hub = new HubView(net!, { isAdmin: () => profile.admin === true, inviteUrl: () => publicCfg?.inviteUrl ?? null, onMyBird: editBird, onSignOut: signOut });
   mount(hub.root);
   hub.start();
   void getPublicCfg();

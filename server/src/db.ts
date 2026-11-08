@@ -141,6 +141,11 @@ export class Db {
     }
   }
 
+  /** `until` null unmutes. */
+  setMuted(id: string, until: number | null): void {
+    this.sql.run('UPDATE users SET muted_until = ? WHERE discord_id = ?', until, id);
+  }
+
   setBird(id: string, p0: number, now = Date.now()): void {
     this.sql.run('UPDATE users SET p0 = ?, bird_changed_at = ? WHERE discord_id = ?', p0, now, id);
   }

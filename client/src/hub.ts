@@ -52,7 +52,9 @@ export class HubView {
   private marker: { x: number; y: number; t: number } | null = null;
   private down: { x: number; y: number } | null = null;
   private net: Net;
-  private opts: { inviteUrl: () => string | null; onMyBird: () => void; onSignOut: () => void };
+  private opts: { isAdmin: () => boolean; inviteUrl: () => string | null; onMyBird: () => void; onSignOut: () => void };
+  private banner = h('div', { class: 'announce', role: 'status', hidden: true });
+  private admin: AdminDrawer | null = null;
 
   constructor(net: Net, opts: HubView['opts']) {
     this.net = net;
@@ -61,7 +63,11 @@ export class HubView {
     const chatBtn = h('button', { class: 'btn chat-btn', onclick: () => this.openChat() }, '💬 Chat');
     this.root = h('div', { class: 'hub' },
       this.canvas,
-      h('div', { class: 'hud' }, this.onlineEl, menuBtn),
+      h('div', { class: 'hud' }, this.onlineEl, h('div', { class: 'hud-right' },
+        this.opts.isAdmin() ? h('button', { class: 'btn admin-btn', 'aria-label': 'Admin tools', onclick: () => this.toggleAdmin() }, '🛡 Admin') : '',
+        menuBtn,
+      )),
+      this.banner,
       h('div', { class: 'hud hud-bottom' }, chatBtn),
       this.panel,
       this.gameHost,
@@ -84,6 +90,7 @@ export class HubView {
   }
 
   destroy(): void {
+    this.admin?.destroy();
     this.closeGame();
     this.closePanel();
     cancelAnimationFrame(this.raf);
@@ -150,12 +157,38 @@ export class HubView {
       case 'leaderboard':
         this.renderLeaderboard(m.top, m.me);
         break;
+      case 'announcement':
+        this.showAnnouncement(m.text);
+        break;
+      case 'adminList':
+      case 'adminDone':
+        this.admin?.handle(m);
+        break;
       default:
         // Game messages go to whichever game screen is open.
         if (m.t.startsWith('gd') || m.t.startsWith('rr')) {
           if (this.game && !(this.game instanceof HallView)) this.game.handle(m);
         }
         break;
+    }
+  }
+
+  private showAnnouncement(text: string | null): void {
+    this.banner.hidden = !text;
+    this.banner.replaceChildren(
+      h('span', { class: 'announce-icon', 'aria-hidden': 'true' }, '📣'),
+      h('span', {}, text ?? ''),
+      h('button', { class: 'btn icon small', 'aria-label': 'Hide announcement', onclick: () => (this.banner.hidden = true) }, '✕'),
+    );
+  }
+
+  private toggleAdmin(): void {
+    if (this.admin) {
+      this.admin.destroy();
+      this.admin = null;
+    } else {
+      this.admin = new AdminDrawer(this.net, () => this.toggleAdmin());
+      this.root.append(this.admin.root);
     }
   }
 
@@ -511,4 +544,66 @@ function drawBubble(ctx: CanvasRenderingContext2D, text: string, x: number, y: n
   ctx.textAlign = 'center';
   lines.forEach((l, i) => ctx.fillText(l, x, top + 21 + i * 18));
   ctx.restore();
+}
+
+/** Admin tools: announcement, and the live list of who is online with mute and kick. Stays open while you walk. */
+class AdminDrawer {
+  readonly root: HTMLElement;
+  private list = h('ul', { class: 'admin-list', 'aria-live': 'off' });
+  private status = h('p', { class: 'small', 'aria-live': 'polite' });
+  private count = h('span', {});
+  private timer: number;
+  private net: Net;
+
+  constructor(net: Net, onClose: () => void) {
+    this.net = net;
+    const text = h('textarea', { class: 'admin-text', maxlength: TUNABLES.announceMax, rows: 2, placeholder: 'Announcement for every player' }) as HTMLTextAreaElement;
+    this.root = h('aside', { class: 'admin-drawer', 'aria-label': 'Admin tools' },
+      h('div', { class: 'panel-head' }, h('h2', {}, 'Admin'), h('button', { class: 'btn icon', 'aria-label': 'Close admin tools', onclick: onClose }, '✕')),
+      text,
+      h('div', { class: 'chips' },
+        h('button', { class: 'btn chip primary', onclick: () => text.value.trim() && net.send({ t: 'adminAnnounce', text: text.value }) }, 'Post'),
+        h('button', { class: 'btn chip', onclick: () => net.send({ t: 'adminAnnounce', text: '' }) }, 'Clear banner'),
+      ),
+      this.status,
+      h('h3', {}, 'Online now ', this.count),
+      this.list,
+    );
+    net.send({ t: 'adminList' });
+    this.timer = window.setInterval(() => net.send({ t: 'adminList' }), TUNABLES.adminListMs);
+  }
+
+  destroy(): void {
+    clearInterval(this.timer);
+    this.root.remove();
+  }
+
+  handle(m: Extract<ServerMsg, { t: 'adminList' | 'adminDone' }>): void {
+    if (m.t === 'adminDone') {
+      this.status.textContent = m.msg;
+      return;
+    }
+    this.count.textContent = `(${m.players.length})`;
+    // Skip the refresh while a button in the list has focus, so a tap is never lost mid-redraw.
+    if (this.list.contains(document.activeElement) && document.activeElement !== this.list) return;
+    this.list.replaceChildren(...m.players.map((p) => {
+      const muted = p.mutedUntil !== null && p.mutedUntil > m.now;
+      const mins = muted ? Math.ceil((p.mutedUntil! - m.now) / 60_000) : 0;
+      const bird = createBirdSvg(`${p.name}'s bird`);
+      bird.set({ p0: p.p0 ?? 50 });
+      const act = (label: string, msg: ClientMsg, cls = '') => h('button', { class: `btn chip ${cls}`, onclick: () => this.net.send(msg) }, label);
+      return h('li', { class: 'admin-row' },
+        bird.el,
+        h('div', { class: 'admin-who' },
+          h('strong', {}, p.name, p.admin ? ' 🛡' : ''),
+          h('span', { class: 'small' }, p.where, muted ? ` · muted ${mins} min` : ''),
+        ),
+        p.admin ? '' : h('div', { class: 'chips' },
+          ...(muted ? [act('Unmute', { t: 'adminMute', ref: p.ref, mins: 0 })]
+            : [act('Mute 10m', { t: 'adminMute', ref: p.ref, mins: 10 }), act('1h', { t: 'adminMute', ref: p.ref, mins: 60 }), act('24h', { t: 'adminMute', ref: p.ref, mins: 1440 })]),
+          h('button', { class: 'btn chip danger', onclick: () => confirm(`Disconnect ${p.name}?`) && this.net.send({ t: 'adminKick', ref: p.ref }) }, 'Kick'),
+        ),
+      );
+    }));
+  }
 }

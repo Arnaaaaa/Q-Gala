@@ -1,7 +1,7 @@
 import type { Gate } from '../../shared/gates.ts';
-import type { ClientMsg, KickCode, LeaderRow, ServerMsg } from '../../shared/protocol.ts';
+import type { AdminPlayer, ClientMsg, KickCode, LeaderRow, ServerMsg } from '../../shared/protocol.ts';
 import { TUNABLES } from '../../shared/tunables.ts';
-import { verifySession } from './auth.ts';
+import { randomId, verifySession } from './auth.ts';
 import { config } from './config.ts';
 import type { Db, LeaderEntry } from './db.ts';
 import { checkSolve, makeLevel, type Run } from './gatedash.ts';
@@ -26,6 +26,7 @@ export type SocketEvents = { message(text: string): void; pong(): void; close():
 
 export type Conn = {
   ws: Socket;
+  ref: string; // public per-connection id, used by admin tools instead of the Discord ID
   uid: string | null;
   limiter: RateLimiter;
   alive: boolean;
@@ -43,6 +44,8 @@ export class Game {
   private heartbeat: ReturnType<typeof setInterval>;
   private runs = new Map<string, Run>(); // Gate Dash runs in progress, by Discord ID
   private board: { top: LeaderEntry[]; at: number } = { top: [], at: 0 };
+  // In memory only: a server restart (e.g. a deploy) clears the banner.
+  private announcement: string | null = null;
 
   constructor(db: Db) {
     this.db = db;
@@ -76,7 +79,7 @@ export class Game {
   }
 
   onConnection(ws: Socket): SocketEvents {
-    const conn: Conn = { ws, uid: null, limiter: new RateLimiter(), alive: true, closed: false, lastChat: 0 };
+    const conn: Conn = { ws, ref: randomId(6), uid: null, limiter: new RateLimiter(), alive: true, closed: false, lastChat: 0 };
     this.conns.add(conn);
     const authTimer = setTimeout(() => !conn.uid && this.kick(conn, 'auth'), TUNABLES.authTimeoutMs);
     return {
@@ -151,7 +154,7 @@ export class Game {
     this.endSessionsFor(user.discord_id, 'replaced');
     conn.uid = user.discord_id;
     this.byUid.set(conn.uid, conn);
-    this.send(conn, { t: 'welcome', profile: { name: user.name, p0: user.p0 } });
+    this.send(conn, { t: 'welcome', profile: { name: user.name, p0: user.p0, admin: isAdmin(user.discord_id) || undefined } });
   }
 
   private route(conn: Conn, uid: string, msg: Exclude<ClientMsg, { t: 'auth' }>): void {
@@ -191,6 +194,12 @@ export class Game {
       case 'rrReact':
       case 'rrVerdict':
         return this.ravens.handle(uid, msg);
+      case 'adminList':
+      case 'adminAnnounce':
+      case 'adminMute':
+      case 'adminKick':
+        if (isAdmin(uid)) this.onAdmin(conn, uid, msg);
+        return;
     }
   }
 
@@ -296,5 +305,52 @@ export class Game {
     if (!user?.name || user.p0 === null) return this.send(conn, { t: 'error', msg: 'Finish your bird first.' });
     if (!this.hub.has(uid) && this.hub.size >= TUNABLES.hub.capacity) return this.kick(conn, 'full');
     this.hub.add(conn, uid, user.name, user.p0);
+    this.send(conn, { t: 'announcement', text: this.announcement });
+  }
+
+  private onAdmin(conn: Conn, uid: string, msg: Extract<ClientMsg, { t: 'adminList' | 'adminAnnounce' | 'adminMute' | 'adminKick' }>): void {
+    const target = 'ref' in msg ? [...this.byUid.values()].find((c) => c.ref === msg.ref) : undefined;
+    const targetName = target?.uid ? (this.db.getUser(target.uid)?.name ?? 'That player') : '';
+    const gone = () => this.send(conn, { t: 'adminDone', msg: 'That player is no longer online.' });
+    switch (msg.t) {
+      case 'adminList':
+        return this.sendAdminList(conn);
+      case 'adminAnnounce':
+        this.announcement = msg.text || null;
+        console.log('admin', uid, msg.text ? 'announce' : 'clear announcement');
+        for (const c of this.byUid.values()) this.send(c, { t: 'announcement', text: this.announcement });
+        return this.send(conn, { t: 'adminDone', msg: msg.text ? 'Announcement posted.' : 'Announcement cleared.' });
+      case 'adminMute':
+        if (!target?.uid) return gone();
+        this.db.setMuted(target.uid, msg.mins ? Date.now() + msg.mins * 60_000 : null);
+        console.log('admin', uid, 'mute', target.uid, msg.mins);
+        this.send(conn, { t: 'adminDone', msg: msg.mins ? `${targetName} is muted.` : `${targetName} is unmuted.` });
+        return this.sendAdminList(conn);
+      case 'adminKick':
+        if (!target?.uid) return gone();
+        if (target === conn) return this.send(conn, { t: 'adminDone', msg: 'You cannot kick yourself.' });
+        console.log('admin', uid, 'kick', target.uid);
+        this.kick(target, 'kicked');
+        this.send(conn, { t: 'adminDone', msg: `${targetName} was disconnected.` });
+        return this.sendAdminList(conn);
+    }
+  }
+
+  /** Everyone signed in, including players still hatching or inside a game. */
+  private sendAdminList(conn: Conn): void {
+    const players: AdminPlayer[] = [];
+    for (const [uid, c] of this.byUid) {
+      const u = this.db.getUser(uid);
+      const where = this.runs.has(uid) ? 'Gate Dash'
+        : this.ravens.inMatch(uid) ? 'Ravens match'
+        : this.ravens.busy(uid) ? 'Ravens queue'
+        : this.hub.has(uid) ? 'Aviary'
+        : 'Setting up';
+      players.push({ ref: c.ref, name: u?.name ?? '(no name yet)', p0: u?.p0 ?? null, where, mutedUntil: u?.muted_until ?? null, admin: isAdmin(uid) });
+    }
+    players.sort((a, b) => a.name.localeCompare(b.name));
+    this.send(conn, { t: 'adminList', players, now: Date.now() });
   }
 }
+
+const isAdmin = (uid: string) => config.adminIds.includes(uid);

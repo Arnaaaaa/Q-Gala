@@ -55,6 +55,8 @@ export const TUNABLES = {
     idleKickMs: 20 * 60_000,
   },
   // Per-connection token buckets, per client message type.
+  announceMax: 200, // characters in the admin banner
+  adminListMs: 3_000, // how often an open admin panel refreshes the online list
   rate: {
     auth: { perSec: 0.5, burst: 3 },
     claimName: { perSec: 0.5, burst: 3 },
@@ -75,6 +77,10 @@ export const TUNABLES = {
     rrSample: { perSec: 1, burst: 3 },
     rrReact: { perSec: 1, burst: 3 },
     rrVerdict: { perSec: 1, burst: 3 },
+    adminList: { perSec: 2, burst: 4 },
+    adminAnnounce: { perSec: 0.5, burst: 3 },
+    adminMute: { perSec: 2, burst: 5 },
+    adminKick: { perSec: 2, burst: 5 },
   } as Record<string, { perSec: number; burst: number }>,
   reconnect: { baseMinMs: 1_000, baseMaxMs: 3_000, capMs: 30_000 },
 };

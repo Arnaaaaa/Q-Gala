@@ -1,4 +1,4 @@
-import type { ClientMsg, Wind } from '../../shared/protocol.ts';
+import { ADMIN_MUTE_MINS, type AdminMuteMins, type ClientMsg, type Wind } from '../../shared/protocol.ts';
 import { TUNABLES } from '../../shared/tunables.ts';
 import { GATES, type Gate } from '../../shared/gates.ts';
 import { EMOTES, PHRASES, type Emote } from '../../shared/phrases.ts';
@@ -62,6 +62,15 @@ export function parseClientMsg(raw: unknown): ClientMsg | null {
       return m.r === 'fine' || m.r === 'raven' ? { t: 'rrReact', r: m.r } : null;
     case 'rrVerdict':
       return m.v === 'trust' || m.v === 'abort' ? { t: 'rrVerdict', v: m.v } : null;
+    case 'adminList':
+      return { t: 'adminList' };
+    case 'adminAnnounce':
+      // Control characters stripped; the client always renders it as plain text.
+      return str(m.text, 400) ? { t: 'adminAnnounce', text: m.text.replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, TUNABLES.announceMax) } : null;
+    case 'adminMute':
+      return str(m.ref, 32) && ADMIN_MUTE_MINS.includes(m.mins as AdminMuteMins) ? { t: 'adminMute', ref: m.ref, mins: m.mins as AdminMuteMins } : null;
+    case 'adminKick':
+      return str(m.ref, 32) ? { t: 'adminKick', ref: m.ref } : null;
     default:
       return null;
   }

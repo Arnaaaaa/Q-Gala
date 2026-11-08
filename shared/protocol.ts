@@ -29,11 +29,20 @@ export type ClientMsg =
   | { t: 'rrIntercept'; notes: number[]; guesses: Wind[]; done: boolean }
   | { t: 'rrSample'; k: number }
   | { t: 'rrReact'; r: RrReaction }
-  | { t: 'rrVerdict'; v: 'trust' | 'abort' };
+  | { t: 'rrVerdict'; v: 'trust' | 'abort' }
+  // Admin only (ADMIN_IDS); the server ignores these from anyone else. `ref` is a per-connection id from adminList.
+  | { t: 'adminList' }
+  | { t: 'adminAnnounce'; text: string } // empty text clears the banner
+  | { t: 'adminMute'; ref: string; mins: AdminMuteMins } // 0 unmutes
+  | { t: 'adminKick'; ref: string };
+
+export const ADMIN_MUTE_MINS = [0, 10, 60, 1440] as const;
+export type AdminMuteMins = (typeof ADMIN_MUTE_MINS)[number];
+export type AdminPlayer = { ref: string; name: string; p0: number | null; where: string; mutedUntil: number | null; admin: boolean };
 
 export type LeaderRow = { rank: number; name: string; p0: number; total: number };
 
-export type Profile = { name: string | null; p0: number | null };
+export type Profile = { name: string | null; p0: number | null; admin?: boolean };
 
 /** A bird as other players see it. `id` is a per-session public id, never the Discord ID. */
 export type BirdDTO = { id: string; name: string; p0: number; x: number; y: number; tx: number; ty: number; idle: boolean };
@@ -86,4 +95,7 @@ export type ServerMsg =
       key: number[];
       points: number[]; // per seat this round
     }
-  | { t: 'rrEnd'; seats: RrSeat[]; you: number; best: number; newBest: boolean };
+  | { t: 'rrEnd'; seats: RrSeat[]; you: number; best: number; newBest: boolean }
+  | { t: 'announcement'; text: string | null }
+  | { t: 'adminList'; players: AdminPlayer[]; now: number }
+  | { t: 'adminDone'; msg: string };
